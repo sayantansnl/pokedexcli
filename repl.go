@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 )
 
@@ -14,4 +16,17 @@ func cleanInput(text string) []string {
 	}
 
 	return lowerWords
+}
+
+func commandExit() error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
+	return nil
+}
+
+func help() error{
+	fmt.Print("\nWelcome to the Pokedex!")
+	fmt.Println("Usage: ")
+
+	return nil
 }
