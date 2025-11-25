@@ -18,20 +18,20 @@ func cleanInput(text string) []string {
 	return lowerWords
 }
 
-func commandExit(config *config) error {
+func commandExit(config *config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(config *config) error {
+func commandHelp(config *config, args ...string) error {
 	fmt.Print("\nWelcome to the Pokedex!")
 	fmt.Println("Usage: ")
 
 	return nil
 }
 
-func commandMap(config *config) error {
+func commandMap(config *config, args ...string) error {
 	baseUrl := "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
 	if config.next == "" {
 		config.next = baseUrl
@@ -54,7 +54,7 @@ func commandMap(config *config) error {
 	return nil
 }
 
-func commandMapB(config *config) error {
+func commandMapB(config *config, args ...string) error {
 	if config.previous == nil {
 		fmt.Print("\nyou're on the first page.")
 		return nil
@@ -73,6 +73,30 @@ func commandMapB(config *config) error {
 
 	config.next = locationStruct.Next
 	config.previous = locationStruct.Previous
+
+	return nil
+}
+
+func commandExplore(config *config, location ...string) error {
+	//baseUrl := "https://pokeapi.co/api/v2/location-area/"
+
+	if len(location) < 1 {
+        return fmt.Errorf("you must provide a location area name")
+    }
+
+	locationDetailStruct, err := config.client.FetchLocationAreaDetails(location[0])
+	if err != nil {
+		return fmt.Errorf("error fetching pokemons: %v", err)
+	}
+
+	encounters := locationDetailStruct.PokemonEncounters
+
+	fmt.Printf("\nExploring %s...", location)
+	fmt.Print("\nFound Pokemon:")
+
+	for _, encounter := range encounters {
+		fmt.Printf("\n%v", encounter.Pokemon.Name)
+	}
 
 	return nil
 }

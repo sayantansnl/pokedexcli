@@ -52,3 +52,35 @@ func (c *Client) FetchLocationAreas(url string) (LocationList, error) {
 
 	return locations, nil
 }
+
+func (c *Client) FetchLocationAreaDetails(name string) (LocationDetails, error) {
+    url := c.baseUrl + "/location-area/" + name
+
+    if data, ok := c.cache.Get(url); ok {
+        var location LocationDetails
+        if err := json.Unmarshal(data, &location); err != nil {
+            return LocationDetails{}, fmt.Errorf("unable to get details: %w", err)
+        }
+        return location, nil
+    }
+
+    res, err := http.Get(url)
+    if err != nil {
+        return LocationDetails{}, fmt.Errorf("unable to fetch details: %w", err)
+    }
+    defer res.Body.Close()
+
+    body, err := io.ReadAll(res.Body)
+    if err != nil {
+        return LocationDetails{}, fmt.Errorf("unreadable location: %w", err)
+    }
+
+    c.cache.Add(url, body)
+
+    var location LocationDetails
+    if err := json.Unmarshal(body, &location); err != nil {
+        return LocationDetails{}, fmt.Errorf("unreadable location: %w", err)
+    }
+
+    return location, nil
+}

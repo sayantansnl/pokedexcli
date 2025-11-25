@@ -27,6 +27,12 @@ func main() {
 			}
 
 			command := cleanedInput[0]
+			var args []string
+			if len(cleanedInput) > 1 {
+				args = cleanedInput[1:]
+			} else {
+				args = []string{}
+			}
 			
 			value, ok := commandRegistry[command]
 			if !ok {
@@ -34,7 +40,7 @@ func main() {
 				continue
 			}
 
-			if err := value.callback(cfg); err != nil {
+			if err := value.callback(cfg, args...); err != nil {
 				fmt.Println(err)
 			}
 
