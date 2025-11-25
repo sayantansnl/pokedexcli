@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/sayantansnl/pokedexcli/internal/pokeapi"
 )
 
 func cleanInput(text string) []string {
@@ -39,7 +37,7 @@ func commandMap(config *config) error {
 		config.next = baseUrl
 	}
 
-	locationStruct, err := pokeapi.FetchLocationAreas(config.next)
+	locationStruct, err := config.client.FetchLocationAreas(config.next)
 	if err != nil {
 		return fmt.Errorf("error: %w", err)
 	}
@@ -62,7 +60,7 @@ func commandMapB(config *config) error {
 		return nil
 	}
 
-	locationStruct, err := pokeapi.FetchLocationAreas(*config.previous)
+	locationStruct, err := config.client.FetchLocationAreas(*config.previous)
 	if err != nil {
 		return fmt.Errorf("error fetching the previous locations, %w", err)
 	}

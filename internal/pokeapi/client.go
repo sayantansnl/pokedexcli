@@ -5,22 +5,45 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/sayantansnl/pokedexcli/internal/pokecache"
 )
 
-func FetchLocationAreas(baseUrl string) (LocationList, error) {
-	//baseUrl := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/?offset=0&limit=20")
+type Client struct {
+	cache   *pokecache.Cache
+	baseUrl string
+}
 
-	res, err := http.Get(baseUrl)
+func NewClient(baseUrl string, interval time.Duration) *Client {
+	return &Client{
+		cache: pokecache.NewCache(interval),
+		baseUrl: baseUrl,
+	}
+}
+
+func (c *Client) FetchLocationAreas(url string) (LocationList, error) {
+	if data, ok := c.cache.Get(url); ok {
+		var locations LocationList
+		if err := json.Unmarshal(data, &locations); err != nil {
+			return LocationList{}, fmt.Errorf("unreadable: %w", err)
+		}
+		return locations, nil
+	}
+
+	res, err := http.Get(url)
 	if err != nil {
 		return LocationList{}, fmt.Errorf("couldn't fetch data due to error: %v", err)
 	}
+
+	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return LocationList{}, fmt.Errorf("couldn't read data: %w", err)
 	}
 
-	defer res.Body.Close()
+	c.cache.Add(url, body)
 
 	var locations LocationList
 	if err := json.Unmarshal(body, &locations); err != nil {
