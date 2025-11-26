@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strings"
 )
@@ -78,13 +79,12 @@ func commandMapB(config *config, args ...string) error {
 }
 
 func commandExplore(config *config, location ...string) error {
-	//baseUrl := "https://pokeapi.co/api/v2/location-area/"
 
 	if len(location) < 1 {
         return fmt.Errorf("you must provide a location area name")
     }
 
-	locationDetailStruct, err := config.client.FetchLocationAreaDetails(location[0])
+	locationDetailStruct, err := config.client.FetchLocationAreaDetails(strings.ToLower(location[0]))
 	if err != nil {
 		return fmt.Errorf("error fetching pokemons: %v", err)
 	}
@@ -99,4 +99,71 @@ func commandExplore(config *config, location ...string) error {
 	}
 
 	return nil
+}
+
+func commandCatch (config *config, pokemonName ...string) error {
+	if len(pokemonName) < 1 {
+		return fmt.Errorf("you must provide a pokemon name")
+	}
+
+	pokemonDetailStruct, err := config.client.FetchPokemon(strings.ToLower(pokemonName[0]))
+	if err != nil {
+		return fmt.Errorf("error fetching pokemon details: %w", err)
+	}
+
+	name := pokemonDetailStruct.Name
+	baseExperience := pokemonDetailStruct.BaseExperience
+
+	if _, ok := config.pokedex[name]; ok {
+		return fmt.Errorf("%s is already caught", name)
+	}
+
+	fmt.Printf("\nThrowing a Pokeball at %s...", name)
+
+	ballPower := rand.IntN(2 * baseExperience)
+
+	if ballPower < baseExperience {
+		fmt.Printf("\n%s escaped!", name)
+	} else {
+		fmt.Printf("\n%s was caught!", name)
+		config.pokedex[name] = pokemonDetailStruct
+	}
+
+	return nil
+}
+
+func commandInspect (config *config, args ...string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("please enter the name of the pokemon you want to inspect")
+	}
+	
+	if _, ok := config.pokedex[args[0]]; !ok {
+		return fmt.Errorf("you haven't caught that pokemon")
+	}
+
+	caughtPokemon := config.pokedex[args[0]]
+
+	name := caughtPokemon.Name
+	height := caughtPokemon.Height
+	weight := caughtPokemon.Weight
+	stats := caughtPokemon.Stats
+	types := caughtPokemon.Types
+
+	fmt.Printf("\nName: %s", name)
+	fmt.Printf("\nHeight: %d", height)
+	fmt.Printf("\nWeight: %d", weight)
+	fmt.Printf("\nStats:")
+
+	for _, stat := range stats {
+		fmt.Printf("\n-%v: %v", stat.Stat.Name, stat.BaseStat)
+	}
+
+	fmt.Printf("\nTypes:")
+
+	for _, t := range types {
+		fmt.Printf("\n-%v", t.Type.Name)
+	}
+	
+	return nil
+
 }

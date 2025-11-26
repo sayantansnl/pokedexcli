@@ -14,6 +14,7 @@ func main() {
 
 	cfg := &config{
 		client: pokeapi.NewClient("https://pokeapi.co/api/v2", 5*time.Second),
+		pokedex: make(map[string]pokeapi.PokemonDetails),
 	}
 
 	for {

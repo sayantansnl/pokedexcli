@@ -84,3 +84,36 @@ func (c *Client) FetchLocationAreaDetails(name string) (LocationDetails, error) 
 
     return location, nil
 }
+
+func (c *Client) FetchPokemon(pokemonName string) (PokemonDetails, error) {
+	url := c.baseUrl + "/pokemon/" + pokemonName
+
+	if data, ok := c.cache.Get(url); ok {
+        var pokemon PokemonDetails
+        if err := json.Unmarshal(data, &pokemon); err != nil {
+            return PokemonDetails{}, fmt.Errorf("unable to get details: %w", err)
+        }
+        return pokemon, nil
+    }
+
+	res, err := http.Get(url)
+	if err != nil {
+		return PokemonDetails{}, fmt.Errorf("cannot fetch pokemon details: %w", err)
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return PokemonDetails{}, fmt.Errorf("unreadable pokemon details: %w", err)
+	}
+
+	c.cache.Add(url, body)
+
+	var pokemon PokemonDetails
+	if err := json.Unmarshal(body, &pokemon); err != nil {
+		return PokemonDetails{}, fmt.Errorf("unable to unmarshal: %w", err)
+	}
+
+	return pokemon, nil
+}
