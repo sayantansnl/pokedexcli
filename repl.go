@@ -167,3 +167,14 @@ func commandInspect (config *config, args ...string) error {
 	return nil
 
 }
+
+func commandPokedex (config *config, args ...string) error {
+	if len(config.pokedex) == 0 {
+		return fmt.Errorf("there are no caught pokemons in your pokeballs")
+	}
+
+	for key, _ := range config.pokedex {
+		fmt.Printf("\n-%s", key)
+	}
+	return nil
+}

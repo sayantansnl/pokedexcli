@@ -42,4 +42,9 @@ var commandRegistry = map[string]cliCommand{
 		description: "Inspects the details of the caught pokemon",
 		callback: commandInspect,
 	},
+	"pokedex": {
+		name: "pokedex",
+		description: "Displays the names of the caught pokemons",
+		callback: commandPokedex,
+	},
 }
